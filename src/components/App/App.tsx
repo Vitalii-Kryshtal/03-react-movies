@@ -11,33 +11,46 @@ import toast from 'react-hot-toast';
 
 export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [seletedMovie, setSelectedMovie] = useState<Movie[]>([]);
-  const searchMovie = async (value: string): Promise<void> => {
-    const newMovies = (await fetchMovies(value)) as Movie[];
-    if (newMovies.length === 0) {
-      toast.error('No movies found for your request.');
-      return;
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+
+  const searchMovie = async (query: string): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const newMovies = await fetchMovies(query);
+
+      if (newMovies.length === 0) {
+        toast.error('No movies found for your request.');
+      }
+
+      setMovies(newMovies);
+    } catch {
+      setError('Failed to fetch movies.');
+    } finally {
+      setIsLoading(false);
     }
-    setMovies(newMovies);
   };
-  const openModal = (): void => setModalOpen(true);
+
+  const selectMovie = (movie: Movie): void => {
+    setSelectedMovie(movie);
+    setModalOpen(true);
+  };
+
   const closeModal = (): void => {
-    setSelectedMovie([]);
+    setSelectedMovie(null);
     setModalOpen(false);
-  };
-  const selectMovie = (id: number): void => {
-    setSelectedMovie(movies.filter(movie => movie.id === id));
-    openModal();
   };
 
   return (
     <div className={css.app}>
       <SearchBar onSubmit={searchMovie} />
-      <ErrorMessage />
-      <Loader />
+      {error && <ErrorMessage />}
+      {isLoading && <Loader />}
       <MovieGrid movies={movies} onSelect={selectMovie} />
-      {modalOpen && <MovieModal movie={seletedMovie} onClose={closeModal} />}
+      {modalOpen && selectedMovie && <MovieModal movie={selectedMovie} onClose={closeModal} />}
     </div>
   );
 }

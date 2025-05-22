@@ -2,7 +2,7 @@ import type { Movie } from '../../types/movie';
 import css from './MovieGrid.module.css';
 
 interface MovieGridProps {
-  onSelect: (id: number) => void;
+  onSelect: (movie: Movie) => void;
   movies: Movie[];
 }
 
@@ -13,7 +13,7 @@ export default function MovieGrid({ onSelect, movies }: MovieGridProps) {
         return (
           <li
             onClick={() => {
-              onSelect(movie.id);
+              onSelect(movie);
             }}
             key={movie.id}
           >
